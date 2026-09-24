@@ -15,14 +15,32 @@ export class RegisterPageComponent {
   readonly error = signal('');
   
   readonly form = new FormGroup({
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
-    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(2)],
+    }),
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email],
+    }),
+    password: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(8)],
+    }),
   });
 
   submit(): void {
-    const values = this.form.getRawValue();
-    this.auth.register(values.name, values.email, values.password).subscribe({
+    // Formulaire invalide : on n'envoie pas de requête inutile au backend.
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.error.set('');
+    const { name, email, password } = this.form.getRawValue();
+
+    // subscribe() déclenche réellement la requête POST /api/auth/register.
+    this.auth.register(name, email, password).subscribe({
       next: () => {
         console.debug('[RegisterPage] Inscription réussie');
         void this.router.navigateByUrl('/profile');

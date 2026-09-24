@@ -25,8 +25,16 @@ export class LoginPageComponent {
   });
 
   submit(): void {
-    const values = this.form.getRawValue();
-    this.auth.login(values.email, values.password).subscribe({
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.error.set('');
+    const { email, password } = this.form.getRawValue();
+
+    // subscribe() déclenche réellement la requête POST /api/auth/login.
+    this.auth.login(email, password).subscribe({
       next: () => {
         console.debug('[LoginPage] Connexion réussie');
         void this.router.navigateByUrl('/tracks');
