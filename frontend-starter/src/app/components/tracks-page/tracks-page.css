@@ -1,1 +1,35 @@
 :host { display: block; }
+
+.track-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+	gap: 0.75rem;
+}
+
+.track-card {
+	min-width: 0;
+	padding: 1rem;
+	border: 1px solid #d7e2de;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.track-card-active { border-color: #1d755e; }
+
+.track-card-heading { display: flex; align-items: start; justify-content: space-between; gap: 0.5rem; }
+.track-card h3 { margin: 0 0 0.75rem; overflow-wrap: anywhere; }
+.track-card dl { margin: 0 0 1rem; }
+.track-card dl div { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 0.5rem; padding: 0.25rem 0; }
+.track-card dt { color: #526760; }
+.track-card dd { margin: 0; overflow-wrap: anywhere; }
+.now-playing { flex: 0 0 auto; color: #1d755e; font-size: 0.85rem; }
+.selected-file { overflow-wrap: anywhere; }
+.success { color: #176b48; }
+.empty-state { grid-column: 1 / -1; }
+.audio-player { margin-top: 1rem; }
+.audio-player h3 { font-size: 1rem; }
+.audio-player audio { display: block; width: 100%; }
+
+@media (max-width: 600px) {
+	.track-list { grid-template-columns: 1fr; }
+}

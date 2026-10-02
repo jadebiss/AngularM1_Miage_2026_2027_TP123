@@ -8,9 +8,28 @@
   <div class="grid">
     <article class="card">
       <h2>Importer</h2>
-      <label>Titre<input [formControl]="title" /></label>
-      <label>Fichier audio<input type="file" accept="audio/*" (change)="choose($event)" /></label>
-      <button type="button" (click)="upload()" [disabled]="!file">Envoyer</button>
+      <label for="track-title">Titre</label>
+      <input id="track-title" [formControl]="title" />
+      <label for="track-file">Fichier audio</label>
+      <input
+        #fileInput
+        id="track-file"
+        type="file"
+        accept=".mp3,.wav,.ogg,.m4a,audio/mpeg,audio/wav,audio/x-wav,audio/ogg,audio/mp4,audio/x-m4a"
+        (change)="choose($event)"
+      />
+      @if (selectedFile(); as file) {
+        <p class="selected-file">Fichier choisi : {{ file.name }}</p>
+      }
+      <button type="button" (click)="upload(fileInput)" [disabled]="!selectedFile() || uploading()">
+        {{ uploading() ? 'Envoi en cours…' : 'Envoyer' }}
+      </button>
+      @if (uploadError()) {
+        <p class="error" role="alert">{{ uploadError() }}</p>
+      }
+      @if (uploadSuccess()) {
+        <p class="success" role="status">{{ uploadSuccess() }}</p>
+      }
     </article>
 
     <article class="card">
@@ -20,25 +39,49 @@
       </div>
       @if (loading()) {
         <p>Chargement…</p>
-      }
-      @for (track of tracks(); track track.id) {
-        <div class="track">
-          <div>
-            <b>{{ track.title }}</b>
-            <small>{{ track.originalName }} · {{ track.size }} Ko</small>
-          </div>
-          <button type="button" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶</button>
+      } @else if (error()) {
+        <p class="error">{{ error() }}</p>
+      } @else {
+        <div class="track-list">
+          @for (track of tracks(); track track.id) {
+            <article class="track-card" [class.track-card-active]="activeTrack()?.id === track.id">
+              <div class="track-card-heading">
+                <h3>{{ track.title }}</h3>
+                @if (activeTrack()?.id === track.id) {
+                  <span class="now-playing">En cours</span>
+                }
+              </div>
+              <dl>
+                <div><dt>Fichier</dt><dd>{{ track.originalName }}</dd></div>
+                <div><dt>Format</dt><dd>{{ track.mimeType.replace('audio/', '').toUpperCase() }}</dd></div>
+                <div><dt>Taille</dt><dd>{{ track.size / 1024 | number:'1.0-0' }} Ko</dd></div>
+                <div><dt>Ajouté le</dt><dd>{{ track.createdAt | date:'mediumDate' }}</dd></div>
+              </dl>
+              <button type="button" (click)="play(track)" [disabled]="audioLoading()" [attr.aria-label]="'Écouter ' + track.title">
+                {{ audioLoading() && activeTrack()?.id === track.id ? 'Chargement…' : 'Écouter' }}
+              </button>
+            </article>
+          } @empty {
+            <p class="empty-state">Aucune piste.</p>
+          }
         </div>
-      } @empty {
-        <p>Aucune piste.</p>
       }
       <div class="pager">
-        <button type="button" (click)="go(page() - 1)" [disabled]="page() === 1">Préc.</button>
+        <button type="button" (click)="go(page() - 1)" [disabled]="page() === 1 || loading()">Précédent</button>
         <span>Page {{ page() }} / {{ pages() }}</span>
-        <button type="button" (click)="go(page() + 1)" [disabled]="page() === pages()">Suiv.</button>
+        <button type="button" (click)="go(page() + 1)" [disabled]="page() === pages() || loading()">Suivant</button>
       </div>
-      @if (audioUrl()) {
-        <audio [src]="audioUrl()" controls autoplay></audio>
+      @if (audioLoading()) {
+        <p role="status">Chargement du morceau audio…</p>
+      }
+      @if (audioError()) {
+        <p class="error" role="alert">{{ audioError() }}</p>
+      }
+      @if (audioUrl(); as url) {
+        <section class="audio-player" aria-label="Lecteur audio">
+          <h3>Lecture : {{ activeTrack()?.title }}</h3>
+          <audio [src]="url" controls autoplay (canplay)="onAudioReady()" (error)="onAudioError()"></audio>
+        </section>
       }
     </article>
   </div>
