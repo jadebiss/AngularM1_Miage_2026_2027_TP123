@@ -43,7 +43,7 @@ export class RegisterPageComponent {
     this.auth.register(name, email, password).subscribe({
       next: () => {
         console.debug('[RegisterPage] Inscription réussie');
-        void this.router.navigateByUrl('/profile');
+        void this.router.navigateByUrl('/tracks');
       },
       error: (error: { error?: { message?: string } }) => {
         console.error('[RegisterPage] Échec de l’inscription', error);
